@@ -23,7 +23,7 @@ public class BattleShips extends Application {
             if (namePlayer.getText().trim().isEmpty() ) { // Проверка не оставил ли игрок поле имя пустым
                 return;
             }
-            primaryStage.close();
+            primaryStage.close(); //Закрывает
             Scene scene = new Scene(game.createContent(namePlayer.getText())); // Получение имени игрока для использования в игре
             primaryStage.setScene(scene);
             primaryStage.setResizable(false);
