@@ -12,232 +12,197 @@ import java.util.Random;
 
 public class Bot extends BotLogic {
 
-	private Cell firstHit; // Первый удар
+	private Cell firstHit; // Первая клетка, куда бот сделает выстрел
 
-	Random r = new Random(); //Рандомайзер
-	public Boolean alive = false; // Флаг на проверку жив ли корабль
-	public Boolean up = false; // Флаг для пометки направления вверх/вниз
-	public Boolean right=false; // Флаг для пометки направления вправо/влево
+	Random r = new Random(); // Генератор случайных чисел для выбора клетки для выстрела
+	public Boolean alive = false; // Флаг, указывающий на то, жив ли корабль
+	public Boolean up = false; // Флаг, указывающий на направление атаки (вверх/вниз)
+	public Boolean right = false; // Флаг, указывающий на направление атаки (вправо/влево)
 
-	public void play() { // Запуск бота
+	public void play() { // Метод для запуска хода бота
 
 		if (alive)
-			stillAlive();
+			stillAlive(); // Если корабль еще жив, продолжаем атаковать вокруг первого попадания
 		else {
-			notAlive();
+			notAlive(); // Если корабль уничтожен, выбираем новую случайную клетку для атаки
 		}
 
-		gameOverCheck();
+		gameOverCheck(); // Проверка условия окончания игры
 	}
 
-	public void stillAlive() { // Что делать в случае, если корабль до сих пор жив
-		Boolean hitFlag = true;
-		Cell randomCell = Baza.playerBoard.getCell(firstHit.getXCord(), firstHit.getYCord());
+	public void stillAlive() { // Действия, если корабль еще жив
+		Boolean hitFlag = true; // Флаг для проверки успешности выстрела
+		Cell randomCell = Baza.playerBoard.getCell(firstHit.getXCord(), firstHit.getYCord()); // Получаем клетку вокруг первого попадания
 		while (hitFlag) {
-			if (!firstHit.ship.isVertical()) {
+			if (!firstHit.ship.isVertical()) { // Если корабль не вертикален
 				if (right)
-					randomCell = goLeft(randomCell);
-				if(!right)
-					randomCell = goRight(randomCell);
-			}
-
-			else {
-				if (up)
-					randomCell = goDown(randomCell);
-				if (!up) {
-					randomCell = goUp(randomCell);
-				}
-
-			}
-			hitFlag = randomCell.shoot(Baza.playerBoard);
-			System.out.println(randomCell);
-
-		}
-
-		if (!aliveCheck(firstHit)) {
-			alive=false;
-		}
-		if (aliveCheck(firstHit)) {
-			alive = true;
-		}
-
-	}
-
-	private void notAlive() { //Если корабль не жив
-		Boolean hitFlag = false;
-		Cell randomCell = getRandomCell();
-		randomCell = Baza.playerBoard.getCell(randomCell.getXCord(), randomCell.getYCord());
-		firstHit = Baza.playerBoard.getCell(randomCell.getXCord(), randomCell.getYCord());
-		firstHit=randomCell;
-	while(randomCell.wasShot) {
-	randomCell = getRandomCell();
-	firstHit=randomCell;
-	randomCell = Baza.playerBoard.getCell(randomCell.getXCord(), randomCell.getYCord());
-	firstHit = Baza.playerBoard.getCell(randomCell.getXCord(), randomCell.getYCord());
-	
-}
-		hitFlag = randomCell.shoot(Baza.playerBoard);
-		
-		if (!hitFlag) {
-			alive = false;
-			return;
-		}
-		if (firstHit.getYCord() < 4.5) { //В случае если координата У меньше 4.5, бот будет атаковать Вниз
-
-			up = false;
-		} else {
-
-			up = true;
-		}
-		
-		if (firstHit.getXCord() < 4.5) {//В случае если координата Х меньше 4.5, бот будет атаковать Вправо
-
-			right = true;
-		} else {
-
-			right = false;
-		}
-		
-		
-		while (hitFlag) {// Реализация атаки, написанной выше
-			if (!firstHit.ship.isVertical()) {
-				if (right)
-					randomCell = goRight(randomCell);
-				if(!right)
-					randomCell = goLeft(randomCell);
+					randomCell = goLeft(randomCell); // Направляем атаку влево
+				if (!right)
+					randomCell = goRight(randomCell); // Иначе направляем атаку вправо
 			} else {
 				if (up)
-					randomCell = goUp(randomCell);
-				if(!up)
-					randomCell = goDown(randomCell);
-				
-
+					randomCell = goDown(randomCell); // Если корабль вертикален и направлен вверх, нападаем вниз
+				if (!up) {
+					randomCell = goUp(randomCell); // Иначе нападаем вверх
+				}
 			}
-			hitFlag = randomCell.shoot(Baza.playerBoard);
-
+			hitFlag = randomCell.shoot(Baza.playerBoard); // Выполняем выстрел в клетку
+			System.out.println(randomCell);
 		}
-		if (!aliveCheck(firstHit)) { // Проверка жив ли однопалубный корабль
-			alive = false;
-	
+		if (!aliveCheck(firstHit)) { // Проверяем, не уничтожен ли корабль после выстрела
+			alive = false; // Если корабль уничтожен, меняем флаг
 		}
-		if (aliveCheck(firstHit)) {
+		if (aliveCheck(firstHit)) { // Если корабль еще жив
 			alive = true;
 		}
 	}
 
-	private boolean aliveCheck(Cell c) { // Проверка жив ли корабль
-		if (!nullCheck(c))
-			if (c.ship.isAlive())
-				return true;
-		return false;
-	}
-
-	private Cell getRandomCell() { // Получение рандомной клетки для хода
-		Cell c = Cell.availableCells.get(r.nextInt(Cell.availableCells.size()));
-		while (c.wasShot) {
-			c = Cell.availableCells.get(r.nextInt(Cell.availableCells.size()));
-
+	private void notAlive() { // Действия, если корабль уничтожен
+		Boolean hitFlag = false; // Флаг для проверки успешности выстрела
+		Cell randomCell = getRandomCell(); // Получаем случайную клетку для атаки
+		randomCell = Baza.playerBoard.getCell(randomCell.getXCord(), randomCell.getYCord()); // Получаем объект клетки из доски игрока
+		firstHit = Baza.playerBoard.getCell(randomCell.getXCord(), randomCell.getYCord()); // Задаем первое попадание в случайную клетку
+		firstHit = randomCell;
+		while(randomCell.wasShot) { // Пока клетка уже подстрелена
+			randomCell = getRandomCell(); // Получаем новую случайную клетку
+			firstHit = randomCell; // Обновляем первое попадание
+			randomCell = Baza.playerBoard.getCell(randomCell.getXCord(), randomCell.getYCord()); // Получаем объект клетки из доски игрока
+			firstHit = Baza.playerBoard.getCell(randomCell.getXCord(), randomCell.getYCord()); // Задаем первое попадание в случайную клетку
 		}
-		return c;
+		hitFlag = randomCell.shoot(Baza.playerBoard); // Выполняем выстрел в случайную клетку
+		if (!hitFlag) {
+			alive = false; // Если выстрел промахнулся, корабль считается уничтоженным
+			return;
+		}
+		if (firstHit.getYCord() < 4.5) { // Если координата Y первого попадания меньше 4.5
+			up = false; // Устанавливаем направление атаки вниз
+		} else {
+			up = true; // Иначе устанавливаем направление атаки вверх
+		}
+		if (firstHit.getXCord() < 4.5) { // Если координата X первого попадания меньше 4.5
+			right = true; // Устанавливаем направление атаки вправо
+		} else {
+			right = false; // Иначе устанавливаем направление атаки влево
+		}
+		while (hitFlag) { // Пока успешно попадаем в корабль
+			if (!firstHit.ship.isVertical()) { // Если корабль не вертикален
+				if (right)
+					randomCell = goRight(randomCell); // Нападаем вправо
+				if (!right)
+					randomCell = goLeft(randomCell); // Иначе нападаем влево
+			} else {
+				if (up)
+					randomCell = goUp(randomCell); // Если корабль вертикален и направлен вверх, нападаем вверх
+				if (!up)
+					randomCell = goDown(randomCell); // Иначе нападаем вниз
+			}
+			hitFlag = randomCell.shoot(Baza.playerBoard); // Выполняем выстрел
+		}
+		if (!aliveCheck(firstHit)) { // Проверяем, не уничтожен ли корабль после выстрела
+			alive = false; // Если корабль уничтожен, меняем флаг
+		}
+		if (aliveCheck(firstHit)) { // Если корабль еще жив
+			alive = true;
+		}
 	}
 
-	public void gameOverCheck() { // Проверка не закончилась ли игра
-		if (Baza.playerBoard.ships <= 0) {
-			Alert alert = new Alert(AlertType.INFORMATION);
-			alert.setTitle("Результат игры");
-			alert.setHeaderText("Вас победил БОТ за  "+Baza.moveCounter+" ходов!");
-			alert.setOnCloseRequest(new EventHandler<DialogEvent>() {
+	private boolean aliveCheck(Cell c) { // Проверка, жив ли корабль
+		if (!nullCheck(c)) // Проверяем, не является ли клетка пустой
+			if (c.ship.isAlive()) // Проверяем, не уничтожен ли корабль, находящийся в клетке
+				return true; // Возвращаем true, если корабль жив
+		return false; // Возвращаем false, если корабль уничтожен или клетка пуста
+	}
+
+	private Cell getRandomCell() { // Получение случайной клетки для атаки
+		Cell c = Cell.availableCells.get(r.nextInt(Cell.availableCells.size())); // Выбираем случайную клетку из списка доступных клеток
+		while (c.wasShot) { // Пока выбранная клетка уже подстрелена
+			c = Cell.availableCells.get(r.nextInt(Cell.availableCells.size())); // Выбираем новую случайную клетку
+		}
+		return c; // Возвращаем выбранную случайную клетку
+	}
+
+	public void gameOverCheck() { // Проверка условия окончания игры
+		if (Baza.playerBoard.ships <= 0) { // Если количество кораблей игрока меньше или равно 0
+			Alert alert = new Alert(AlertType.INFORMATION); // Создаем информационное диалоговое окно
+			alert.setTitle("Результат игры"); // Устанавливаем заголовок окна
+			alert.setHeaderText("Вас победил БОТ за " + Baza.moveCounter + " ходов!"); // Устанавливаем текст заголовка
+			alert.setOnCloseRequest(new EventHandler<DialogEvent>() { // Устанавливаем действие при закрытии окна
 				@Override
 				public void handle(DialogEvent event) {
-					System.exit(0);
+					System.exit(0); // Закрываем приложение при закрытии окна
 				}
 			});
-
-			alert.showAndWait();
+			alert.showAndWait(); // Отображаем окно и ждем его закрытия
 		}
 	}
 
-	private Cell goUp(Cell c) {
-		int x = c.getXCord();
-		int y = c.getYCord();
+	private Cell goUp(Cell c) { // Движение вверх от заданной клетки
+		int x = c.getXCord(); // Получаем координату X клетки
+		int y = c.getYCord(); // Получаем координату Y клетки
 
-		if (y == 0) {
-			return goDown(c);
-
+		if (y == 0) { // Если координата Y достигла верхней границы доски
+			return goDown(c); // Возвращаемся вниз
 		}
 
-		c = new Cell(x, y);
-		c = Baza.playerBoard.getCell(x, --y);
-		while (c.wasShot) {
-			c = getRandomCell();
-			c = Baza.playerBoard.getCell(c.getXCord(), c.getYCord());
-
+		c = new Cell(x, y); // Создаем новый объект клетки с текущими координатами
+		c = Baza.playerBoard.getCell(x, --y); // Получаем клетку на одну строку выше
+		while (c.wasShot) { // Пока выбранная клетка уже подстрелена
+			c = getRandomCell(); // Выбираем новую случайную клетку
+			c = Baza.playerBoard.getCell(c.getXCord(), c.getYCord()); // Получаем объект клетки из доски игрока
 		}
 
-		return c;
+		return c; // Возвращаем новую выбранную клетку
 	}
 
-	private Cell goDown(Cell c) {
-		int x = c.getXCord();
-		int y = c.getYCord();
-		if (y == 9) {
-
-			return goUp(c);
+	private Cell goDown(Cell c) { // Движение вниз от заданной клетки
+		int x = c.getXCord(); // Получаем координату X клетки
+		int y = c.getYCord(); // Получаем координату Y клетки
+		if (y == 9) { // Если координата Y достигла нижней границы доски
+			return goUp(c); // Возвращаемся вверх
 		}
-		c = new Cell(x, y);
-		c = Baza.playerBoard.getCell(x, ++y);
-		while (c.wasShot) {
-			c = getRandomCell();
-			c = Baza.playerBoard.getCell(c.getXCord(), c.getYCord());
-
+		c = new Cell(x, y); // Создаем новый объект клетки с текущими координатами
+		c = Baza.playerBoard.getCell(x, ++y); // Получаем клетку на одну строку ниже
+		while (c.wasShot) { // Пока выбранная клетка уже подстрелена
+			c = getRandomCell(); // Выбираем новую случайную клетку
+			c = Baza.playerBoard.getCell(c.getXCord(), c.getYCord()); // Получаем объект клетки из доски игрока
 		}
-
-		return c;
+		return c; // Возвращаем новую выбранную клетку
 	}
 
-	private Cell goRight(Cell c) {
-		int x = c.getXCord();
-		int y = c.getYCord();
-		if (x == 9) {
-			return goLeft(c);
-
+	private Cell goRight(Cell c) { // Движение вправо от заданной клетки
+		int x = c.getXCord(); // Получаем координату X клетки
+		int y = c.getYCord(); // Получаем координату Y клетки
+		if (x == 9) { // Если координата X достигла правой границы доски
+			return goLeft(c); // Возвращаемся влево
 		}
-		c = new Cell(x, y);
-		c = Baza.playerBoard.getCell(++x, y);
-		while (c.wasShot) {
-
-			c = getRandomCell();
-			c = Baza.playerBoard.getCell(c.getXCord(), c.getYCord());
+		c = new Cell(x, y); // Создаем новый объект клетки с текущими координатами
+		c = Baza.playerBoard.getCell(++x, y); // Получаем клетку на один столбец правее
+		while (c.wasShot) { // Пока выбранная клетка уже подстрелена
+			c = getRandomCell(); // Выбираем новую случайную клетку
+			c = Baza.playerBoard.getCell(c.getXCord(), c.getYCord()); // Получаем объект клетки из доски игрока
 		}
-
-		return c;
-
+		return c; // Возвращаем новую выбранную клетку
 	}
 
-	private Cell goLeft(Cell c) {
-		int x = c.getXCord();
-		int y = c.getYCord();
-		if (x == 0) {
-			return goRight(c);
-
+	private Cell goLeft(Cell c) { // Движение влево от заданной клетки
+		int x = c.getXCord(); // Получаем координату X клетки
+		int y = c.getYCord(); // Получаем координату Y клетки
+		if (x == 0) { // Если координата X достигла левой границы доски
+			return goRight(c); // Возвращаемся вправо
 		}
-		c = new Cell(x, y);
-		c = Baza.playerBoard.getCell(--x, y);
-		while (c.wasShot) {
-
-			c = getRandomCell();
-			c = Baza.playerBoard.getCell(c.getXCord(), c.getYCord());
-
+		c = new Cell(x, y); // Создаем новый объект клетки с текущими координатами
+		c = Baza.playerBoard.getCell(--x, y); // Получаем клетку на один столбец левее
+		while (c.wasShot) { // Пока выбранная клетка уже подстрелена
+			c = getRandomCell(); // Выбираем новую случайную клетку
+			c = Baza.playerBoard.getCell(c.getXCord(), c.getYCord()); // Получаем объект клетки из доски игрока
 		}
-
-		return c;
+		return c; // Возвращаем новую выбранную клетку
 	}
 
-	private Boolean nullCheck(Cell c) {
-		if (c == null) {
-			return true;
+	private Boolean nullCheck(Cell c) { // Проверка, является ли клетка пустой (null)
+		if (c == null) { // Если клетка не инициализирована
+			return true; // Возвращаем true
 		} else
-			return false;
+			return false; // Иначе возвращаем false
 	}
-
 }

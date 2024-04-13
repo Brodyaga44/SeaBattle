@@ -9,7 +9,7 @@ import javafx.scene.Parent;
 	    private int health; // Количество "жизней" корабля
 
 	    public Ship(int type, boolean vertical) { // Информация о корабле
-	        this.type = type; // Вид палуб
+	        this.type = type; // количество палуб
 	        this.vertical = vertical; // Вертикальность/горизонтальность корабля
 	        health = type; // Присвоение кораблю количества жизней
 	    }

@@ -23,7 +23,7 @@ public class BattleShips extends Application {
             if (namePlayer.getText().trim().isEmpty() ) { // Проверка не оставил ли игрок поле имя пустым
                 return;
             }
-            primaryStage.close(); //Закрывает
+            primaryStage.close(); //Закрывает окно ввода имени пользователя
             Scene scene = new Scene(game.createContent(namePlayer.getText())); // Получение имени игрока для использования в игре
             primaryStage.setScene(scene);
             primaryStage.setResizable(false);
@@ -31,7 +31,7 @@ public class BattleShips extends Application {
         });
         VBox layout = new VBox(10);
         layout.setPadding(new Insets(20));
-        layout.getChildren().addAll(labelPlayer, namePlayer, submitButton);
+        layout.getChildren().addAll(labelPlayer, namePlayer, submitButton);//Создание окна ввода имени пользователя
         layout.setAlignment(Pos.CENTER);
         Scene scene = new Scene(layout, 300, 200);
         primaryStage.setScene(scene);
